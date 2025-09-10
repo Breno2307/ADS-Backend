@@ -1,8 +1,21 @@
 //importa o framework
 const express = require("express");
 
+//impotar o middleware de  rota
+const router = require("./routertarefa");
+
+//importa middleware de terceiros
+const cors = require("cors");
+
 //cria uma instancia de aplicação
 const app = express();
+
+//midleware embutido ou integrado
+app.use(express.json());
+app.use(express.urlencoded({ extended: false })); //?param1=valor&param2=valor2
+
+//midleware de terceiros
+app.use(cors());
 
 //middleware de aplicação
 app.use((req, res, next) => {
@@ -11,21 +24,6 @@ app.use((req, res, next) => {
 });
 
 //middleware de rota
-const router = express.Router();
-
-router.get("/", (req, res) => {
-  res.send("chegou aqui");
-});
-
-router.post("/", (req, res) => {
-  res.status(201).send("iserido com sucesso");
-});
-
-router.get("/:id", (req, res) => {
-  const { id } = req.params; // {id:1, params2:5,params3:6}
-  if (id == 1) return res.send("achei");
-  throw Error("não achei");
-});
 
 app.use("/tarefas", router);
 
