@@ -1,74 +1,104 @@
 const supertest = require("supertest");
+
 const app = require("../app");
+
 const request = supertest(app);
 
-describe("Testes da rota /tarefas", () => {
-  let id;
+let tarefaId;
 
-  test("GET /tarefas 200", async () => {
-    const response = await request.get(url);
-    expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.body).not.toBeNull();
+describe("Testes da API de Tarefas", () => {
+  test("GET /tarefas deve retornar status 200 e JSON", async () => {
+    const response = await request
+      .get("/tarefas")
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    expect(Array.isArray(response.body)).toBe(true);
   });
 
-  test("POST /tarefas 201", async () => {
-    const response = await request.post(url).send({
+  test("POST /tarefas deve retornar status 201 e JSON", async () => {
+    const novaTarefa = {
       nome: "Estudar Node",
       concluida: false,
-    });
-    expect(response.status).toBe(201);
-    expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.body["id"]).toBeDefined();
-    id = response.body["id"];
-    expect(response.body["nome"]).toMatch("Estudar Node");
-    expect(response.body["concluida"]).toBeFalsy();
+    };
+    const response = await request
+      .post("/tarefas")
+      .send(novaTarefa)
+      .expect(201)
+      .expect("Content-Type", /json/);
+    expect(response.body).toHaveProperty("id");
+    expect(response.body).toHaveProperty("nome", "Estudar Node");
+    expect(response.body).toHaveProperty("concluida", false);
+    tarefaId = response.body.id;
   });
 
-  test("GET /tarefas/id 200", async () => {
-    const response = await request.get(`${url}/${id}`);
-    expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.body["id"]).toBe(id);
-    expect(response.body["nome"]).toMatch("Estudar Express");
-    expect(response.body["concluida"]).toBeFalsy();
+  test("GET /tarefas/:id deve retornar status 200 e JSON para tarefa existente", async () => {
+    const response = await request
+      .get(`/tarefas/${tarefaId}`)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    expect(response.body).toHaveProperty("id", tarefaId);
+    expect(response.body).toHaveProperty("nome", "Estudar Node");
+    expect(response.body).toHaveProperty("concluida", false);
   });
-});
-test("GET /tarefas/id 404", async () => {
-  const response = await request.get(`${url}/0`);
-  expect(response.status).toBe(404);
-  expect(response.headers["content-type"]).toMatch(/json/);
-  expect(response.body["msg"]).toBe("Tarefa não encontrada");
-});
-test("PUT /tarefas/id 200", async () => {
-    const response = await request.put(`${url}/${id}`).send({
-      nome: "estudar para P1",
+
+  test("GET /tarefas/1 deve retornar status 404 e JSON", async () => {
+    const response = await request
+      .get("/tarefas/1")
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(response.body).toHaveProperty("msg", "Tarefa não encontrada");
+  });
+
+  test("PUT /tarefas/:id deve retornar status 200 e JSON para tarefa existente", async () => {
+    const tarefaAtualizada = {
+      nome: "Estudar Node e Express",
       concluida: true,
-    });
-    expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.body.id).toBe(id);
-    expect(response.body.nome).toBe("estudar para P1");
-    expect(response.body.concluida).toBe(true);
+    };
+
+    const response = await request
+      .put(`/tarefas/${tarefaId}`)
+      .send(tarefaAtualizada)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    expect(response.body).toHaveProperty("id", tarefaId);
+    expect(response.body).toHaveProperty("nome", "Estudar Node e Express");
+    expect(response.body).toHaveProperty("concluida", true);
   });
 
-  test("PUT /tarefas/id 404", async () => {
-    const response = await request.put(`${url}/0`);
-    expect(response.status).toBe(404);
-    expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.body["msg"]).toBe("Tarefa não encontrada");
+  test("PUT /tarefas/1 deve retornar status 404 e JSON", async () => {
+    const tarefaAtualizada = {
+      nome: "Tarefa Inexistente",
+      concluida: true,
+    };
+
+    const response = await request
+      .put("/tarefas/1")
+      .send(tarefaAtualizada)
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(response.body).toHaveProperty("msg", "Tarefa não encontrada");
   });
 
-  test("DELETE /tarefas/id 204", async () => {
-    const response = await request.delete(`${url}/${id}`);
-    expect(response.status).toBe(204);
-    expect(response.body).toStrictEqual({});
+  test("DELETE /tarefas/:id deve retornar status 204 sem conteúdo", async () => {
+    await request
+      .delete(`/tarefas/${tarefaId}`)
+      .expect(204)
+      .expect((res) => {
+        expect(res.body).toEqual({});
+      });
   });
 
-  test("DELETE /tarefas/id retorna 404", async () => {
-    const response = await request.delete(`${url}/0`);
-    expect(response.status).toBe(404);
-    expect(response.headers["content-type"]).toMatch(/json/);
-    expect(response.body["msg"]).toBe("Tarefa não encontrada");
-  });
+  test("DELETE /tarefas/1 deve retornar status 404 e JSON", async () => {
+    const response = await request
+      .delete("/tarefas/1")
+      .expect(404)
+      .expect("Content-Type", /json/);
 
+    expect(response.body).toHaveProperty("msg", "Tarefa não encontrada");
+  });
+});
