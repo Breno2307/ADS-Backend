@@ -8,16 +8,16 @@ let url = "/tarefas";
 let id = null;
 
 describe("testes do recurso /tarefas", () => {
-
   test("Post / deve retornar 201", async () => {
     const response = await request.post(url).send({ nome: "estudar" });
     expect(response.status).toBe(201);
-    id = response.body.id;
+    id = response.body._id;
   });
 
   test("GET / deve retornar 200", async () => {
-    const response = await request.get(url)
+    const response = await request.get(url);
     expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
   });
 
   test("GET /id deve retornar 200", async () => {
