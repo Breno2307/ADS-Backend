@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
-  nome: String,
+  nome: { type: String, required:[ true, 'Nome da tarefa é obrigatorio'], trim: true },
   concluida: Boolean,
 });
 
