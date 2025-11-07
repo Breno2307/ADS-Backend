@@ -1,65 +1,210 @@
 openapi: 3.1.1
 info:
   title: Minha API
-  description: Projeto de uma API REST desenvolvida com express.js
+  description: Projeto de uma API REST desenvolvida com Expressjs
   version: 0.1.0
 servers:
   - url: http://localhost:3000/
-    description: Ambiente de desenvolvimento
+    description: Ambiente de Desenvolvimento
 tags:
   - tarefas
 paths:
   /tarefas:
     get:
-      tags: 
+      summary: Lista todas as tarefas
+      tags:
         - tarefas
       responses:
         200:
           content:
             application/json:
               schema:
-                type: array
+                $ref: '#/components/schemas/ArrayOfTarefas'
+
+        500:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error500'
     post:
-      tags: 
+      summary: cria a tarefa
+      tags:
         - tarefas
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              properties:
+                nome:
+                  type: string
+                  example: "estudar Swagger"
       responses:
         201:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/tarefa'
         422:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/error422'
         500:
           content:
             application/json:
               schema:
-                type: object    
+                $ref: '#/components/schemas/error500'
   /tarefas/id:
     get:
-      tags: 
+      summary: busca a tarefa
+      tags:
         - tarefas
-    parameters:
-      - in: path
-        name: tarefaId
-        require: true
-        schema:
-          type: integer
-    responses:
-      200:
-      404:
-      500:
+      parameters:
+        - in: path
+          name: tarefaId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/tarefa'
+        400:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error400'
+        404:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error404'
+        500:
+          content:
+            application/json:
+               schema:
+                $ref: '#/components/schemas/error500'
     put:
-      tags: 
+      security:
+        - JWTAuth: []
+      summary: atualiza a tarefa
+      tags:
         - tarefas
+      parameters:
+        - in: path
+          name: tarefaId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  tyoe: string
+                concluida:
+                  type: boolean
+      responses:
+        200:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/tarefa'
+        400:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error400'
+        404:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error404'
+        422:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error422'
+        500:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error500'
     delete:
-      tags: 
+      summary: apaga a tarefa
+      tags:
         - tarefas
+      parameters:
+        - in: path
+          name: tarefaId
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          content:
+        400:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error400'
+        404:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error404'
+        500:
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/error500'
+components:
+  securitySchemes:
+    JWTAuth:
+      type: apikey
+      in: header
+      name: Authorization
+  schemas:
+  
+    tarefa:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        concluida:
+          type: boolean
+    ArrayOfTarefas:
+      type: array
+      items:
+        $ref: '#/components/schemas/tarefa'
+    error400:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "id invalido"
+    error404:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "tarefa não encontrada"
+    error422:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "nome obrigatório"
+    error500:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Deu ruim"
