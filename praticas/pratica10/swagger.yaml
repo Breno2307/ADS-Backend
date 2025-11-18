@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: Minha API REST
+  description: API para gerenciamento de usuários com autenticação JWT
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000/
+    description: Servidor de desenvolvimento
+tags:
+  - name: usuarios
+    description: Operações relacionadas a usuários
+
+paths:
+  /usuarios:
+    post:
+      tags:
+        - usuarios
+      summary: Criar novo usuário
+      description: Cria um novo usuário no sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - senha
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: usuario@email.com
+                senha:
+                  type: string
+                  format: password
+                  example: abcd1234
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '422':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+    delete:
+      tags:
+        - usuarios
+      summary: Remover usuário
+      description: Remove um usuário do sistema
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usuario
+              properties:
+                usuario:
+                  type: string
+                  example: usuario@email.com
+      responses:
+        '204':
+          description: Usuário removido com sucesso
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+
+  /usuarios/login:
+    post:
+      tags:
+        - usuarios
+      summary: Fazer login
+      description: Autentica um usuário e retorna um token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usuario
+                - senha
+              properties:
+                usuario:
+                  type: string
+                  example: usuario@email.com
+                senha:
+                  type: string
+                  format: password
+                  example: abcd1234
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+
+  /usuarios/renovar:
+    post:
+      tags:
+        - usuarios
+      summary: Renovar token
+      description: Renova o token JWT do usuário
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: Token renovado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+
+components:
+  schemas:
+    Usuario:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        email:
+          type: string
+          example: usuario@email.com
+    
+    Mensagem:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: Mensagem de erro ou sucesso
+
+  securitySchemes:
+    JWTAuth:
+      type: apiKey
+      in: header
+      name: authorization
+      description: Token JWT no formato Bearer {token}
